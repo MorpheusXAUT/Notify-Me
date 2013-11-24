@@ -69,7 +69,6 @@ namespace PRoConEvents
         private string strCallAdminCommand;
 
         private List<CPlayerInfo> lstPlayers;
-        private List<string> lstAdminsOnline;
         private List<string> lstReservedSlots;
         private List<string> lstCustomAdmins;
 
@@ -110,7 +109,6 @@ namespace PRoConEvents
             this.strCallAdminCommand = "calladmin";
 
             this.lstPlayers = new List<CPlayerInfo>();
-            this.lstAdminsOnline = new List<string>();
             this.lstReservedSlots = new List<string>();
             this.lstCustomAdmins = new List<string>();
 
@@ -139,7 +137,7 @@ namespace PRoConEvents
         // plugin-version shown in the plugin-tab
         public string GetPluginVersion()
         {
-            return "1.0.0.0";
+            return "1.0.0.1";
         }
 
         // your name
@@ -579,7 +577,9 @@ namespace PRoConEvents
 
         private void IngameWrite(string message)
         {
-            foreach (string str in this.lstAdminsOnline)
+			List<string> adminsOnline = this.AdminsOnline();
+		
+            foreach (string str in adminsOnline)
             {
                 if (this.strIngameNotification.CompareTo("Say") == 0)
                 {
@@ -738,6 +738,54 @@ namespace PRoConEvents
             return false;
         }
 
+		public List<string> AdminsOnline()
+		{
+			List<string> adminsOnline = new List<string>();
+		
+			foreach (CPlayerInfo cpiPlayer in this.lstPlayers)
+			{
+				if (this.blUseProconAccounts == enumBoolYesNo.Yes)
+				{
+					CPrivileges privileges = this.GetAccountPrivileges(cpiPlayer.SoldierName);
+					if (privileges != null && privileges.CanKickPlayers)
+					{
+						adminsOnline.Add(cpiPlayer.SoldierName);
+					}
+				}
+
+				if (this.blUseReservedSlots == enumBoolYesNo.Yes)
+				{
+					foreach (string str in this.lstReservedSlots)
+					{
+						if (cpiPlayer.SoldierName.CompareTo(str) == 0 && (adminsOnline.Contains(cpiPlayer.SoldierName) == false))
+						{
+							adminsOnline.Add(cpiPlayer.SoldierName);
+							break;
+						}
+					}
+				}
+
+				if (this.blUseCustomList == enumBoolYesNo.Yes)
+				{
+					foreach (string str in this.lstCustomAdmins)
+					{
+						if (cpiPlayer.SoldierName.ToLower().CompareTo(str.ToLower()) == 0 && (adminsOnline.Contains(cpiPlayer.SoldierName) == false))
+						{
+							adminsOnline.Add(cpiPlayer.SoldierName);
+							break;
+						}
+					}
+				}
+
+				if (!this.dicAntiSpam.ContainsKey(cpiPlayer.SoldierName))
+				{
+					this.dicAntiSpam.Add(cpiPlayer.SoldierName, new CSpamProtection(cpiPlayer.SoldierName));
+				}
+			}
+			
+			return adminsOnline;
+		}
+		
         public void OnCommandAdmins(string strSpeaker, string strText, MatchCommand mtcCommand, CapturedCommand capCommand, CPlayerSubset subMatchedScope)
         {
             if (!SpamCheck(strSpeaker))
@@ -751,14 +799,16 @@ namespace PRoConEvents
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] No admins have been defined :(", "player", strSpeaker);
                 }
 
-                foreach (string str in this.lstAdminsOnline)
+				List<string> adminsOnline = this.AdminsOnline();
+				
+                foreach (string str in adminsOnline)
                 {
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] " + str, "player", strSpeaker);
                 }
 
-                if (this.lstAdminsOnline.Count > 0)
+                if (adminsOnline.Count > 0)
                 {
-                    this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] Number of admins online: " + this.lstAdminsOnline.Count, "player", strSpeaker);
+                    this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] Number of admins online: " + adminsOnline.Count, "player", strSpeaker);
                 }
                 else
                 {
@@ -793,7 +843,9 @@ namespace PRoConEvents
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] No admins have been defined :(", "player", strSpeaker);
                 }
 
-                if (this.lstAdminsOnline.Count == 0 || this.blAlwaysSendMail == enumBoolYesNo.Yes)
+				List<string> adminsOnline = this.AdminsOnline();
+				
+                if (adminsOnline.Count == 0 || this.blAlwaysSendMail == enumBoolYesNo.Yes)
                 {
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] There are currently no admins ingame :(", "player", strSpeaker);
                     if (this.blNotifyConsole == enumBoolYesNo.Yes || this.blNotifyChat == enumBoolYesNo.Yes || this.blNotifyNotification == enumBoolYesNo.Yes || this.blNotifyEmail == enumBoolYesNo.Yes)
@@ -903,49 +955,6 @@ namespace PRoConEvents
             if (cpsSubset.Subset == CPlayerSubset.PlayerSubsetType.All)
             {
                 this.lstPlayers = lstPlayers;
-
-                this.lstAdminsOnline.Clear();
-
-                foreach (CPlayerInfo cpiPlayer in this.lstPlayers)
-                {
-                    if (this.blUseProconAccounts == enumBoolYesNo.Yes)
-                    {
-                        CPrivileges privileges = this.GetAccountPrivileges(cpiPlayer.SoldierName);
-                        if (privileges != null && privileges.CanKickPlayers && (this.lstAdminsOnline.Contains(cpiPlayer.SoldierName) == false))
-                        {
-                            this.lstAdminsOnline.Add(cpiPlayer.SoldierName);
-                        }
-                    }
-
-                    if (this.blUseReservedSlots == enumBoolYesNo.Yes)
-                    {
-                        foreach (string str in this.lstReservedSlots)
-                        {
-                            if (cpiPlayer.SoldierName.CompareTo(str) == 0 && (this.lstAdminsOnline.Contains(cpiPlayer.SoldierName) == false))
-                            {
-                                this.lstAdminsOnline.Add(cpiPlayer.SoldierName);
-                                break;
-                            }
-                        }
-                    }
-
-                    if (this.blUseCustomList == enumBoolYesNo.Yes)
-                    {
-                        foreach (string str in this.lstCustomAdmins)
-                        {
-                            if (cpiPlayer.SoldierName.ToLower().CompareTo(str.ToLower()) == 0 && (this.lstAdminsOnline.Contains(cpiPlayer.SoldierName) == false))
-                            {
-                                this.lstAdminsOnline.Add(cpiPlayer.SoldierName);
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!this.dicAntiSpam.ContainsKey(cpiPlayer.SoldierName))
-                    {
-                        this.dicAntiSpam.Add(cpiPlayer.SoldierName, new CSpamProtection(cpiPlayer.SoldierName));
-                    }
-                }
 
                 this.RegisterAllCommands();
             }
