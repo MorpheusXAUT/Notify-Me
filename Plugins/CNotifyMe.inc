@@ -68,6 +68,7 @@ namespace PRoConEvents
 
         private string strAdminsCommand;
         private string strCallAdminCommand;
+		private enumBoolYesNo blRequireReason;
 
         private List<CPlayerInfo> lstPlayers;
         private List<string> lstReservedSlots;
@@ -109,6 +110,7 @@ namespace PRoConEvents
 
             this.strAdminsCommand = "admins";
             this.strCallAdminCommand = "calladmin";
+			this.blRequireReason = enumBoolYesNo.No;
 
             this.lstPlayers = new List<CPlayerInfo>();
             this.lstReservedSlots = new List<string>();
@@ -274,6 +276,7 @@ namespace PRoConEvents
 
             lstReturn.Add(new CPluginVariable("3. Ingame Commands|List admins on the server", typeof(string), this.strAdminsCommand));
             lstReturn.Add(new CPluginVariable("3. Ingame Commands|Call an admin", typeof(string), this.strCallAdminCommand));
+			lstReturn.Add(new CPluginVariable("3. Ingame Commands|Require reason for calling an admin?", typeof(enumBoolYesNo), this.blRequireReason));
 
             if (this.blNotifyEmail == enumBoolYesNo.Yes)
             {
@@ -316,6 +319,7 @@ namespace PRoConEvents
 
             lstReturn.Add(new CPluginVariable("List admins on the server", typeof(string), this.strAdminsCommand));
             lstReturn.Add(new CPluginVariable("Call an admin", typeof(string), this.strCallAdminCommand));
+			lstReturn.Add(new CPluginVariable("Require reason for calling an admin?", typeof(enumBoolYesNo), this.blRequireReason));
 
             lstReturn.Add(new CPluginVariable("Always send email notifications?", typeof(enumBoolYesNo), this.blAlwaysSendMail));
             lstReturn.Add(new CPluginVariable("Use SSL?", typeof(enumBoolYesNo), this.blUseSSL));
@@ -441,6 +445,10 @@ namespace PRoConEvents
             else if (strVariable.CompareTo("Call an admin") == 0)
             {
                 this.strCallAdminCommand = strValue;
+            }
+			else if (strVariable.CompareTo("Require reason for calling an admin?") == 0 && Enum.IsDefined(typeof(enumBoolYesNo), strValue) == true)
+            {
+                this.blRequireReason = (enumBoolYesNo)Enum.Parse(typeof(enumBoolYesNo), strValue);
             }
             else if (strVariable.CompareTo("Always send email notifications?") == 0 && Enum.IsDefined(typeof(enumBoolYesNo), strValue) == true)
             {
@@ -729,14 +737,14 @@ namespace PRoConEvents
 
                 if (this.dicAntiSpam[name].iRequestCount >= this.iAllowedRequests)
                 {
-                    this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] You have reached the allowed numbers of requests per round!", "player", name);
+                    this.ExecuteCommand("procon.protected.send", "admin.say", String.Format("[Notify Me!] You have reached the allowed numbers of requests per round ({0})!", this.iAllowedRequests), "player", name);
                     return true;
                 }
 
                 TimeSpan tsTimeSinceLastRequest = DateTime.Now.Subtract(this.dicAntiSpam[name].dtLastRequest);
                 if (tsTimeSinceLastRequest.TotalSeconds <= this.iTimeBetweenRequests && this.dicAntiSpam[name].iRequestCount != 0)
                 {
-                    this.ExecuteCommand("procon.protected.send", "admin.say", String.Format("[Notify Me!] You can just send a request every {0} seconds!", this.iTimeBetweenRequests), "player", name);
+                    this.ExecuteCommand("procon.protected.send", "admin.say", String.Format("[Notify Me!] You can just send a request every {0} seconds ({1} seconds since last request, {2}/{3} requests this round)!", this.iTimeBetweenRequests, (int)tsTimeSinceLastRequest.TotalSeconds, this.dicAntiSpam[name].iRequestCount, this.iAllowedRequests), "player", name);
                     return true;
                 }
 
@@ -798,7 +806,7 @@ namespace PRoConEvents
         public void OnCommandAdmins(string strSpeaker, string strText, MatchCommand mtcCommand, CapturedCommand capCommand, CPlayerSubset subMatchedScope)
         {
             if (!SpamCheck(strSpeaker))
-            {
+            {		
                 if (this.blUseProconAccounts == enumBoolYesNo.Yes || this.blUseReservedSlots == enumBoolYesNo.Yes || this.blUseCustomList == enumBoolYesNo.Yes)
                 {
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] List of admins online:", "player", strSpeaker);
@@ -847,6 +855,12 @@ namespace PRoConEvents
         {
             if (!SpamCheck(strSpeaker))
             {
+				if (this.blRequireReason == enumBoolYesNo.Yes && capCommand.ExtraArguments == String.Empty)
+				{
+					this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] Please provide a reason when calling an admin!", "player", strSpeaker);
+					return;
+				}
+			
                 if (this.blUseProconAccounts == enumBoolYesNo.No && this.blUseReservedSlots == enumBoolYesNo.No && this.blUseCustomList == enumBoolYesNo.No)
                 {
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] No admins have been defined :(", "player", strSpeaker);
