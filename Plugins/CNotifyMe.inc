@@ -870,7 +870,6 @@ namespace PRoConEvents
 				
                 if (adminsOnline.Count == 0 || this.blAlwaysSendMail == enumBoolYesNo.Yes)
                 {
-                    this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] There are currently no admins ingame :(", "player", strSpeaker);
                     if (this.blNotifyConsole == enumBoolYesNo.Yes || this.blNotifyChat == enumBoolYesNo.Yes || this.blNotifyNotification == enumBoolYesNo.Yes || this.blNotifyEmail == enumBoolYesNo.Yes)
                     {
                         this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] A notification has been sent out. Help should arrive soon!", "player", strSpeaker);
