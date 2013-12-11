@@ -184,8 +184,7 @@ namespace PRoConEvents
 <li><p><b>Keyword list</b>: list of buzzwords for chat-monitoring. This list is case-insentive and also matches partially (e.g.: 'cheat' triggers 'cheater' too)</p></li>
 <li><p><b>Enable spam protection?</b>: toggle spam protection to prevent alert-spam</p></li>
 <li><p><b>Number of allowed requests per round</b>: number of allowed admin-calls/admin-lists per round. Gets reset for every player at the end of a round</p></li>
-<li><p><b>Time between requests (seconds)</b>: time in seconds, which must elapse before a player can send a new request (set to 0 to disable)</p></li>
-<li><p><b>Game Type</b>: type of the game this layer is connected to (BF3 or BC2)</p></li></ul>
+<li><p><b>Time between requests (seconds)</b>: time in seconds, which must elapse before a player can send a new request (set to 0 to disable)</p></li></ul>
 <h3>2. Admin Settings</h3>
 <ul><li><p><b>Use Procon-Accounts as admins?</b>: the plugin will check whether a player has ingame-kick rights. If that's the case, he will be listed as an admin</p></li>
 <li><p><b>Use reserved slotlist as admins?</b>: the plugin will check whether a player is listed on the gameserver's reserved slotlist. If that's the case, he will be listed as an admin</p></li>
@@ -193,7 +192,8 @@ namespace PRoConEvents
 <li><p><b>Custom adminlist</b>: list containing all custom admins defined by the headadmin. This list is case-insensitive</p></li></ul>
 <h3>3. Ingame Commands</h3>
 <ul><li><p><b>List admins on the server</b>: command used to list all admins online on the server. Don't include '@' in this string. All commands are available using '@', '!' or '#' as a prefix. The current command is '@" + this.strAdminsCommand + @"'</p></li>
-<li><p><b>Call an admin</b>: command used to call an admin. Don't include '@' in this string. All commands are available using '@', '!' or '#' as a prefix. The current command is '@" + this.strCallAdminCommand + @"'</p></li></ul>
+<li><p><b>Call an admin</b>: command used to call an admin. Don't include '@' in this string. All commands are available using '@', '!' or '#' as a prefix. The current command is '@" + this.strCallAdminCommand + @"'</p></li>
+<li><p><b>Require reason for calling an admin?</b>: Toggles whether players <b>must</b> provide a reason when calling for an admins. If this is set to 'Yes', requests with no reasons will be ignored and players will be notified.</p></li></ul>
 <h3>4. Email Settings</h3>
 <ul><li><p><b>Always send email notifications?</b>: when turned on, notification-mails will be sent every time a player requests an admin. when turned off, the mails will just be sent when no admin is currently ingame</p></li>
 <li><p><b>Use SSL?</b>: toggle SSL usage for mail-transmission</p></li>
@@ -212,6 +212,11 @@ namespace PRoConEvents
             this.strHostName = strHostName;
             this.strPort = strPort;
         }
+		
+		public void OnPluginLoadingEnv(List<string> lstPluginEnv)
+		{
+			this.strGameType = lstPluginEnv[1];
+		}
 
         // called when the plugin gets enabled. This also includes loading a plugin, which has been enabled before
         public void OnPluginEnable()
@@ -273,7 +278,6 @@ namespace PRoConEvents
                 lstReturn.Add(new CPluginVariable("1. Notification Settings|Number of allowed requests per round", typeof(int), this.iAllowedRequests));
                 lstReturn.Add(new CPluginVariable("1. Notification Settings|Time between requests (seconds)", typeof(int), this.iTimeBetweenRequests));
             }
-            lstReturn.Add(new CPluginVariable("1. Notification Settings|Game type", "enumGame(BF4|BF3|BC2)", this.strGameType));
 
             lstReturn.Add(new CPluginVariable("3. Ingame Commands|List admins on the server", typeof(string), this.strAdminsCommand));
             lstReturn.Add(new CPluginVariable("3. Ingame Commands|Call an admin", typeof(string), this.strCallAdminCommand));
@@ -315,7 +319,6 @@ namespace PRoConEvents
             lstReturn.Add(new CPluginVariable("Enable spam protection?", typeof(enumBoolYesNo), this.blSpamProtection));
             lstReturn.Add(new CPluginVariable("Number of allowed requests per round", typeof(int), this.iAllowedRequests));
             lstReturn.Add(new CPluginVariable("Time between requests (seconds)", typeof(int), this.iTimeBetweenRequests));
-            lstReturn.Add(new CPluginVariable("Game type", "enumGame(BF4|BF3|BC2)", this.strGameType));
 
             lstReturn.Add(new CPluginVariable("List admins on the server", typeof(string), this.strAdminsCommand));
             lstReturn.Add(new CPluginVariable("Call an admin", typeof(string), this.strCallAdminCommand));
@@ -396,10 +399,6 @@ namespace PRoConEvents
                 {
                     this.iTimeBetweenRequests = iTime;
                 }
-            }
-            else if (strVariable.CompareTo("Game type") == 0)
-            {
-                this.strGameType = strValue;
             }
             else if (strVariable.CompareTo("Use Procon-Accounts as admins?") == 0 && Enum.IsDefined(typeof(enumBoolYesNo), strValue) == true)
             {
