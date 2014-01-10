@@ -650,7 +650,7 @@ namespace PRoConEvents
                 foreach (CPlayerInfo player in this.lstPlayers)
                 {
 					this.ConsoleWrite("Count: " + this.dicPBList.Count);
-                    sb.AppendFormat("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td><td>{10}</td></tr>", player.ClanTag, player.SoldierName, player.GUID, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].GUID : String.Empty, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].Ip : String.Empty, player.Score, player.Kills, player.Deaths, Math.Round((decimal)player.Kdr), player.Ping, player.Rank); 
+                    sb.AppendFormat("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td><td>{10}</td></tr>", player.ClanTag, player.SoldierName, player.GUID, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].GUID : String.Empty, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].Ip : String.Empty, player.Score, player.Kills, player.Deaths, Math.Round((decimal)player.Kdr, 2), player.Ping, player.Rank); 
                 }
                 sb.Append("</table>");
 
