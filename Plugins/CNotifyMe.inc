@@ -53,6 +53,7 @@ namespace PRoConEvents
         private enumBoolYesNo blNotifyIngame;
         private string strIngameNotification;
         private enumBoolYesNo blNotifyEmail;
+		private string strGUIDType;
         private enumBoolYesNo blMonitorChat;
         private List<string> lstKeywordList;
         private string strPreviousMessage;
@@ -95,6 +96,7 @@ namespace PRoConEvents
             this.blNotifyIngame = enumBoolYesNo.No;
             this.strIngameNotification = "Say";
             this.blNotifyEmail = enumBoolYesNo.No;
+			this.strGUIDType = "Both";
             this.blMonitorChat = enumBoolYesNo.No;
             this.lstKeywordList = new List<string>();
             this.strPreviousMessage = String.Empty;
@@ -180,6 +182,7 @@ namespace PRoConEvents
 <li><p><b>Notify admins ingame?</b>: post a message to all admins currently ingame when an relevant event is caught</p></li>
 <li><p><b>Ingame notification type</b>: way of notifying ingame admins</p></li>
 <li><p><b>Notify via email?</b>: send an email to defined addresses when an relevant event is caught</p></li>
+<li><p><b>GUID type shown in email</b>: selects which GUID type will be shown in the report email</p></li>
 <li><p><b>Monitor chat for keywords?</b>: check all chat-entries for defined buzzwords</p></li>
 <li><p><b>Keyword list</b>: list of buzzwords for chat-monitoring. This list is case-insentive and also matches partially (e.g.: 'cheat' triggers 'cheater' too)</p></li>
 <li><p><b>Enable spam protection?</b>: toggle spam protection to prevent alert-spam</p></li>
@@ -267,6 +270,10 @@ namespace PRoConEvents
                 lstReturn.Add(new CPluginVariable("1. Notification Settings|Ingame notification type", "enumActions(Say|Yell|Both)", this.strIngameNotification));
             }
             lstReturn.Add(new CPluginVariable("1. Notification Settings|Notify via email?", typeof(enumBoolYesNo), this.blNotifyEmail));
+			if (this.blNotifyEmail == enumBoolYesNo.Yes)
+			{
+				lstReturn.Add(new CPluginVariable("1. Notification Settings|GUID type shown in email", "enumGUIDType(EA GUID|PB GUID|Both)", this.strGUIDType));
+			}
             lstReturn.Add(new CPluginVariable("1. Notification Settings|Monitor chat for keywords?", typeof(enumBoolYesNo), this.blMonitorChat));
             if (this.blMonitorChat == enumBoolYesNo.Yes)
             {
@@ -314,6 +321,7 @@ namespace PRoConEvents
             lstReturn.Add(new CPluginVariable("Notify admins ingame?", typeof(enumBoolYesNo), this.blNotifyIngame));
             lstReturn.Add(new CPluginVariable("Ingame notification type", "enumActions(Say|Yell|Both)", this.strIngameNotification));
             lstReturn.Add(new CPluginVariable("Notify via email?", typeof(enumBoolYesNo), this.blNotifyEmail));
+			lstReturn.Add(new CPluginVariable("GUID type shown in email", "enumGUIDType(EA GUID|PB GUID|Both)", this.strGUIDType));
             lstReturn.Add(new CPluginVariable("Monitor chat for keywords?", typeof(enumBoolYesNo), this.blMonitorChat));
             lstReturn.Add(new CPluginVariable("Keyword list", typeof(string[]), this.lstKeywordList.ToArray()));
             lstReturn.Add(new CPluginVariable("Enable spam protection?", typeof(enumBoolYesNo), this.blSpamProtection));
@@ -373,6 +381,10 @@ namespace PRoConEvents
             else if (strVariable.CompareTo("Notify via email?") == 0 && Enum.IsDefined(typeof(enumBoolYesNo), strValue) == true)
             {
                 this.blNotifyEmail = (enumBoolYesNo)Enum.Parse(typeof(enumBoolYesNo), strValue);
+            }
+			else if (strVariable.CompareTo("GUID type shown in email") == 0)
+            {
+                this.strGUIDType = strValue;
             }
             else if (strVariable.CompareTo("Monitor chat for keywords?") == 0 && Enum.IsDefined(typeof(enumBoolYesNo), strValue) == true)
             {
@@ -646,11 +658,36 @@ namespace PRoConEvents
                 sb.Append("<i>Request-Sender:</i> " + sender + "<br />");
                 sb.Append("<i>Message:</i> " + message + "<br /><br />");
                 sb.Append("<i>Playertable:</i><br />");
-                sb.Append("<table border='1' ><tr><th>ClanTag</th><th>Playername</th><th>EA GUID</th><th>PB GUID</th><th>IP</th><th>Score</th><th>Kills</th><th>Deaths</th><th>KDR</th><th>Ping</th><th>Rank</th></tr>");
+                sb.Append("<table border='1' ><tr><th>ClanTag</th><th>Playername</th>");
+				if (this.strGUIDType.CompareTo("EA GUID") == 0)
+				{
+					sb.Append("<th>EA GUID</th>");
+				}
+				else if (this.strGUIDType.CompareTo("PB GUID") == 0)
+				{
+					sb.Append("<th>PB GUID</th>");
+				}
+				else
+				{
+					sb.Append("<th>EA GUID</th><th>PB GUID</th>");
+				}
+				sb.Append("<th>IP</th><th>Score</th><th>Kills</th><th>Deaths</th><th>KDR</th><th>Ping</th><th>Rank</th></tr>");
                 foreach (CPlayerInfo player in this.lstPlayers)
                 {
-					this.ConsoleWrite("Count: " + this.dicPBList.Count);
-                    sb.AppendFormat("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td><td>{10}</td></tr>", player.ClanTag, player.SoldierName, player.GUID, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].GUID : String.Empty, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].Ip : String.Empty, player.Score, player.Kills, player.Deaths, Math.Round((decimal)player.Kdr, 2), player.Ping, player.Rank); 
+                    sb.AppendFormat("<tr><td>{0}</td><td>{1}", player.ClanTag, player.SoldierName); 
+					if (this.strGUIDType.CompareTo("EA GUID") == 0)
+					{
+						sb.AppendFormat("<td>{0}</td>", player.GUID);
+					}
+					else if (this.strGUIDType.CompareTo("PB GUID") == 0)
+					{
+						sb.AppendFormat("<td>{0}</td>", this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].GUID : String.Empty);
+					}
+					else
+					{
+						sb.AppendFormat("<td>{0}</td><td>{1}</td>", player.GUID, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].GUID : String.Empty);
+					}
+					sb.AppendFormat("</td><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td></tr>", this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].Ip : String.Empty, player.Score, player.Kills, player.Deaths, Math.Round((decimal)player.Kdr, 2), player.Ping, player.Rank);
                 }
                 sb.Append("</table>");
 
