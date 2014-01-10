@@ -223,7 +223,7 @@ namespace PRoConEvents
         {
             this.blPluginEnabled = true;
 
-            this.RegisterEvents(this.GetType().Name, "OnListPlayers", "OnPlayerJoin", "OnGlobalChat", "OnTeamChat", "OnSquadChat", "OnServerInfo", "OnPlayerLeft", "OnReservedSlotsList", "OnLoadingLevel", "OnAccountLogin", "OnAccountLogout", "OnPunkbusterPlayerInfo");
+            this.RegisterEvents(this.GetType().Name, "OnListPlayers", "OnPlayerJoin", "OnGlobalChat", "OnTeamChat", "OnSquadChat", "OnServerInfo", "OnPlayerLeft", "OnReservedSlotsList", "OnRoundOver", "OnLoadingLevel", "OnAccountLogin", "OnAccountLogout", "OnPunkbusterPlayerInfo");
 
             this.RegisterAllCommands();
 
@@ -1040,15 +1040,20 @@ namespace PRoConEvents
             this.csiServer = csiServerInfo;
         }
 
+		public override void OnRoundOver(int winningTeamId)
+		{
+			foreach (KeyValuePair<string, CSpamProtection> kvp in this.dicAntiSpam)
+			{
+				kvp.Value.iRequestCount = 0;
+			}
+		}
+		
         public override void OnLoadingLevel(string strMapFileName, int roundsPlayed, int roundsTotal)
         {
-            if (this.blSpamProtection == enumBoolYesNo.Yes)
-            {
-                foreach (KeyValuePair<string, CSpamProtection> kvp in this.dicAntiSpam)
-                {
-                    kvp.Value.iRequestCount = 0;
-                }
-            }
+			foreach (KeyValuePair<string, CSpamProtection> kvp in this.dicAntiSpam)
+			{
+				kvp.Value.iRequestCount = 0;
+			}
         }
 
         public override void OnAccountLogin(string accountName, string ip, CPrivileges privileges)
