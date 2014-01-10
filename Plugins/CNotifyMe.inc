@@ -1,6 +1,6 @@
-﻿/*  Copyright 2010 MorpheusX(AUT)
+﻿/*  Copyright 2014 MorpheusX(AUT)
 
-    http://www.morpheusx.at
+    https://myrcon.com
 
     This file is part of MorpheusX(AUT)'s Plugins for BFBC2 PRoCon.
 
@@ -141,7 +141,7 @@ namespace PRoConEvents
         // plugin-version shown in the plugin-tab
         public string GetPluginVersion()
         {
-            return "1.0.0.1";
+            return "1.0.0.2";
         }
 
         // your name
@@ -849,14 +849,14 @@ namespace PRoConEvents
 
         public void OnCommandCallAdmin(string strSpeaker, string strText, MatchCommand mtcCommand, CapturedCommand capCommand, CPlayerSubset subMatchedScope)
         {
+			if (this.blRequireReason == enumBoolYesNo.Yes && capCommand.ExtraArguments == String.Empty)
+			{
+				this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] Please provide a reason when calling an admin!", "player", strSpeaker);
+				return;
+			}
+		
             if (!SpamCheck(strSpeaker))
             {
-				if (this.blRequireReason == enumBoolYesNo.Yes && capCommand.ExtraArguments == String.Empty)
-				{
-					this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] Please provide a reason when calling an admin!", "player", strSpeaker);
-					return;
-				}
-			
                 if (this.blUseProconAccounts == enumBoolYesNo.No && this.blUseReservedSlots == enumBoolYesNo.No && this.blUseCustomList == enumBoolYesNo.No)
                 {
                     this.ExecuteCommand("procon.protected.send", "admin.say", "[Notify Me!] No admins have been defined :(", "player", strSpeaker);
