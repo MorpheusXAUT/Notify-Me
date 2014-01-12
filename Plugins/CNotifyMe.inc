@@ -659,6 +659,7 @@ namespace PRoConEvents
                 sb.Append("<i>Message:</i> " + message + "<br /><br />");
                 sb.Append("<i>Playertable:</i><br />");
                 sb.Append("<table border='1' ><tr><th>ClanTag</th><th>Playername</th>");
+				
 				if (this.strGUIDType.CompareTo("EA GUID") == 0)
 				{
 					sb.Append("<th>EA GUID</th>");
@@ -671,7 +672,9 @@ namespace PRoConEvents
 				{
 					sb.Append("<th>EA GUID</th><th>PB GUID</th>");
 				}
+				
 				sb.Append("<th>IP</th><th>Score</th><th>Kills</th><th>Deaths</th><th>KDR</th><th>Ping</th><th>Rank</th></tr>");
+				
                 foreach (CPlayerInfo player in this.lstPlayers)
                 {
                     sb.AppendFormat("<tr><td>{0}</td><td>{1}", player.ClanTag, player.SoldierName); 
@@ -687,7 +690,7 @@ namespace PRoConEvents
 					{
 						sb.AppendFormat("<td>{0}</td><td>{1}</td>", player.GUID, this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].GUID : String.Empty);
 					}
-					sb.AppendFormat("</td><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td></tr>", this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].Ip : String.Empty, player.Score, player.Kills, player.Deaths, Math.Round((decimal)player.Kdr, 2), player.Ping, player.Rank);
+					sb.AppendFormat("<td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td></tr>", this.dicPBList.ContainsKey(player.SoldierName) ? this.dicPBList[player.SoldierName].Ip : String.Empty, player.Score, player.Kills, player.Deaths, Math.Round((decimal)player.Kdr, 2), player.Ping, player.Rank);
                 }
                 sb.Append("</table>");
 
