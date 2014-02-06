@@ -143,7 +143,7 @@ namespace PRoConEvents
         // plugin-version shown in the plugin-tab
         public string GetPluginVersion()
         {
-            return "1.0.0.2";
+            return "1.0.0.3";
         }
 
         // your name
@@ -155,7 +155,7 @@ namespace PRoConEvents
         // url of your homepage
         public string GetPluginWebsite()
         {
-            return "https://myrcon.com";
+            return "https://forum.myrcon.com/showthread.php?2294-Notify-Me!-Notifications-and-alerts-(v1-0-0-2)";
         }
 
         // description displayed in the description-tab of the plugins
@@ -615,7 +615,7 @@ namespace PRoConEvents
                     {
                         this.ExecuteCommand("procon.protected.send", "admin.yell", "[Notify Me!] " + message, "8000", "player", str);
                     }
-                    else if (this.strGameType.CompareTo("BF3") == 0)
+                    else if (this.strGameType.CompareTo("BF3") == 0 || this.strGameType.CompareTo("BF4") == 0)
                     {
                         this.ExecuteCommand("procon.protected.send", "admin.yell", "[Notify Me!] " + message, "8", "player", str);
                     }
@@ -631,7 +631,7 @@ namespace PRoConEvents
                     {
                         this.ExecuteCommand("procon.protected.send", "admin.yell", "[Notify Me!] " + message, "8000", "player", str);
                     }
-                    else if (this.strGameType.CompareTo("BF3") == 0)
+                    else if (this.strGameType.CompareTo("BF3") == 0 || this.strGameType.CompareTo("BF4") == 0)
                     {
                         this.ExecuteCommand("procon.protected.send", "admin.yell", "[Notify Me!] " + message, "8", "player", str);
                     }
